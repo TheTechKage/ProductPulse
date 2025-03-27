@@ -1,25 +1,39 @@
 from fastapi import FastAPI
-from database.db import DatabasePool
+from database import Database
 from dotenv import load_dotenv
+import models
 import os
+from sqlalchemy import text
 
 if __name__ == "__main__":
     try:
         load_dotenv()
-        connection_pool=DatabasePool(
+        db=Database(
+            os.getenv("SQLALCHEMY_DATABASE_URL"),
             os.getenv("DB_POOL_MIN_CONNECTION"),
             os.getenv("DB_POOL_MAX_CONNECTION"),
-            user=os.getenv("POSTGRES_USER"),
-            password=os.getenv("POSTGRES_PASSWORD"),
-            host=os.getenv("POSTGRES_HOST"),
-            port=os.getenv("POSTGRES_DB_PORT"),
-            database=os.getenv("POSTGRES_DB")
-        )
+            pool_timeout=30
+        ).db_engine
 
-        connection =connection_pool.get_connection()
+        # test connection
+        if db:
+            try:
+                with db.connect() as connection:
+                    query = text("SELECT version();")
+                    connection.execute(query)
+                    db_version=connection.fetchone()
+                    if(db_version):
+                        print(f"Database version: {db_version[0]}")
+                        connection.commit()
+
+                        # db_base=models.Base()
+                        # db_base.base.metadata.create_all()
+
+            except Exception as e:
+                print(f"Error executing query: {e}")
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred in application: {e}")
 
 
 # app = FastAPI()
