@@ -1,18 +1,35 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+import json
 
 app = FastAPI()
 
+
 @app.get("/api/products")
 async def get_products():
-    return {}
+    with open("./data.json", "r") as f:
+        data = json.load(f)
+    return data.get("products")
+
 
 @app.get("/api/product/{id}")
 async def get_product(id: int):
-    return {}
+    with open("./data.json", "r") as f:
+        data = json.load(f)
+
+    products = data.get("products", [])
+    for product in products:
+        if product["id"] == id:
+            return product
+
+    raise HTTPException(status_code=404, detail=f"Product with id {id} not found")
+
 
 @app.get("/api/categories")
 async def get_categories():
-    return {}
+    with open("./data.json", "r") as f:
+        data = json.load(f)
+    return data.get("categories", {})
+
 
 @app.get("/api/cart")
 async def get_cart():
