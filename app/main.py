@@ -24,6 +24,13 @@ async def get_product(id: int):
     raise HTTPException(status_code=404, detail=f"Product with id {id} not found")
 
 
+@app.get("/api/products/search", response_model=List[Product])
+async def search_products(query: str):
+    data = load_data()
+    products = data.get("products", [])
+    return [product for product in products if query.lower() in product["name"].lower()]
+
+
 @app.get("/api/categories", response_model=Dict[str, Category])
 async def get_categories():
     data = load_data()
