@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
-from app.schemas.product import Product
-from app.schemas.category import Category
-from app.utils import load_data
+from schemas.product import Product
+from schemas.category import Category
+from utils import load_data
 from typing import List, Dict
 
 app = FastAPI()
