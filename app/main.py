@@ -1,10 +1,17 @@
-from fastapi import FastAPI
+
+from fastapi import FastAPI, HTTPException
 from database import Database
 from dotenv import load_dotenv
 from models.Base import base
 from models import models
 import os
 from sqlalchemy import text
+
+
+from schemas.product import Product
+from schemas.category import Category
+from utils import load_data
+from typing import List, Dict
 
 if __name__ == "__main__":
     try:
@@ -44,18 +51,37 @@ if __name__ == "__main__":
 
 app = FastAPI()
 
-@app.get("/api/products")
+
+@app.get("/api/products", response_model=List[Product])
 async def get_products():
-    return {}
+    data = load_data()
+    return data.get("products")
 
-@app.get("/api/product/{id}")
+
+@app.get("/api/product/{id}", response_model=Product)
 async def get_product(id: int):
-    return {}
+    data = load_data()
+    products = data.get("products", [])
+    for product in products:
+        if product["id"] == id:
+            return product
 
-@app.get("/api/categories")
+    raise HTTPException(status_code=404, detail=f"Product with id {id} not found")
+
+
+@app.get("/api/products/search", response_model=List[Product])
+async def search_products(query: str):
+    data = load_data()
+    products = data.get("products", [])
+    return [product for product in products if query.lower() in product["name"].lower()]
+
+
+@app.get("/api/categories", response_model=Dict[str, Category])
 async def get_categories():
-    return {}
+    data = load_data()
+    return data.get("categories", {})
 
-@app.get("/api/cart")
+
+@app.get("/api/cart", response_model=Dict)
 async def get_cart():
     return {}
