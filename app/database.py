@@ -6,18 +6,18 @@ class Database:
         self.db_url=db_url
         self.max_connections=max_connections
         self.min_connections=min_connections
-        self.db_engine=None,
+        self.db_engine=None
         self.connection_params=kwargs
         self.session=None
         self.initialize_engine()
         
     def initialize_engine(self):
         try:
-            if self.db_engine==None: 
-                self.db_engine=create_engine(pool_size=self.min_connections,max_overflow=self.max_connections,**self.connection_params)
-            if self.db_engine:
-                print("Successfully created postgress connection.")
-                self.session=sessionmaker(bind=self.db_engine)
+            if self.db_engine==None:
+                self.db_engine=create_engine(self.db_url,**self.connection_params)
+            print("Successfully created postgress connection.")
+            self.session=sessionmaker(bind=self.db_engine)
         except Exception as e:
             print(f"Error initializing db connection: {e}")
             raise
+        return self.db_engine

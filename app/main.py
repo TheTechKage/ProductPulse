@@ -1,18 +1,24 @@
 from fastapi import FastAPI
 from database import Database
 from dotenv import load_dotenv
-import models
+from models.Base import base
+from models import models
 import os
 from sqlalchemy import text
 
 if __name__ == "__main__":
     try:
         load_dotenv()
+
         db=Database(
             os.getenv("SQLALCHEMY_DATABASE_URL"),
             os.getenv("DB_POOL_MIN_CONNECTION"),
             os.getenv("DB_POOL_MAX_CONNECTION"),
-            pool_timeout=30
+            # connection_params=[
+            #     "echo": True,
+                # "pool_timeout": 30,
+                # "pool_recycle": 3600
+            # ]
         ).db_engine
 
         # test connection
@@ -20,14 +26,14 @@ if __name__ == "__main__":
             try:
                 with db.connect() as connection:
                     query = text("SELECT version();")
-                    connection.execute(query)
-                    db_version=connection.fetchone()
+                    result=connection.execute(query)
+                    db_version=result.fetchone()
                     if(db_version):
                         print(f"Database version: {db_version[0]}")
-                        connection.commit()
 
-                        # db_base=models.Base()
-                        # db_base.base.metadata.create_all()
+                    baseop=base.metadata.create_all(db)
+                    print("op --",baseop)
+                    connection.commit()
 
             except Exception as e:
                 print(f"Error executing query: {e}")
