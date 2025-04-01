@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: postgres_db
+    restart: always
+    env_file:
+      - ./app/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./app/dataset/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "5432:5432"
+    platform: linux/amd64
+    networks:
+      - postgresnetwork
+
+  app:
+    build: ./app
+    depends_on:
+      - postgres_db
+    container_name: fastapi_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app
+
+  ui:
+    build: ./ui
+    container_name: react_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./ui:/ui
+
+
+networks:
+  postgresnetwork:
+    driver: bridge
+
+volumes:
+  pgdata: 
